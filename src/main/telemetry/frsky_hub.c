@@ -83,7 +83,7 @@ static portSharing_e frSkyHubPortSharing;
 
 static frSkyHubWriteByteFn *frSkyHubWriteByte = NULL;
 
-#define FRSKY_HUB_CYCLETIME_US    125000
+#define FRSKY_HUB_CYCLETIME_US    1000
 
 #define PROTOCOL_HEADER       0x5E
 #define PROTOCOL_TAIL         0x5E
@@ -524,99 +524,13 @@ void processFrSkyHubTelemetry(timeUs_t currentTimeUs)
 #if defined(USE_ACC)
     if (sensors(SENSOR_ACC) && telemetryIsSensorEnabled(SENSOR_ACC_X | SENSOR_ACC_Y | SENSOR_ACC_Z)) {
         // Sent every 125ms
-        sendAccel();
+       // sendAccel();
+        serialWrite(frSkyHubPort, 0x42);
     }
 #endif
 
-#if defined(USE_BARO) || defined(USE_RANGEFINDER) || defined(USE_GPS)
-    if (sensors(SENSOR_BARO | SENSOR_RANGEFINDER) | sensors(SENSOR_GPS)) {
-        // Sent every 125ms
-        // Send vertical speed for opentx. ID_VERT_SPEED
-        // Unit is cm/s
-#ifdef USE_VARIO
-        if (telemetryIsSensorEnabled(SENSOR_VARIO)) {
-            frSkyHubWriteFrame(ID_VERT_SPEED, getEstimatedVario());
-        }
-#endif
 
-        // Sent every 500ms
-        if ((cycleNum % 4) == 0 && telemetryIsSensorEnabled(SENSOR_ALTITUDE)) {
-            int32_t altitudeCm = getEstimatedAltitudeCm();
-
-            /* Allow 5s to boot correctly othervise send zero to prevent OpenTX
-             * sensor lost notifications after warm boot. */
-            if (frSkyHubLastCycleTime < DELAY_FOR_BARO_INITIALISATION_US) {
-                altitudeCm = 0;
-            }
-
-            frSkyHubWriteFrame(ID_ALTITUDE_BP, altitudeCm / 100); // meters: integer part, eg. 123 from 123.45m
-            frSkyHubWriteFrame(ID_ALTITUDE_AP, altitudeCm % 100); // meters: fractional part, eg. 45 from 123.45m
-        }
-    }
-#endif
-
-#if defined(USE_MAG)
-    if (sensors(SENSOR_MAG) && telemetryIsSensorEnabled(SENSOR_HEADING)) {
-        // Sent every 500ms
-        if ((cycleNum % 4) == 0) {
-            sendHeading();
-        }
-    }
-#endif
-
-    // Sent every 1s
-    if ((cycleNum % 8) == 0) {
-        sendTemperature1();
-        sendThrottleOrBatterySizeAsRpm();
-
-        if (isBatteryVoltageConfigured()) {
-            if (telemetryIsSensorEnabled(SENSOR_VOLTAGE)) {
-                sendVoltageCells();
-                sendVoltageAmp();
-            }
-
-            if (isAmperageConfigured()) {
-                if (telemetryIsSensorEnabled(SENSOR_CURRENT)) {
-                    sendAmperage();
-                }
-                if (telemetryIsSensorEnabled(SENSOR_FUEL)) {
-                    sendFuelLevel();
-                }
-            }
-        }
-
-#if defined(USE_GPS)
-        if (sensors(SENSOR_GPS)) {
-            if (telemetryIsSensorEnabled(SENSOR_GROUND_SPEED)) {
-                sendSpeed();
-            }
-            if (telemetryIsSensorEnabled(SENSOR_ALTITUDE)) {
-                sendGpsAltitude();
-            }
-            sendSatalliteSignalQualityAsTemperature2(cycleNum);
-            if (telemetryIsSensorEnabled(SENSOR_LAT_LONG)) {
-                sendGPSLatLong();
-            }
-        } else
-#endif
-#if defined(USE_MAG)
-        if (sensors(SENSOR_MAG)) {
-            sendFakeLatLongThatAllowsHeadingDisplay();
-        }
-#else
-        {}
-#endif
-    }
-
-    // Sent every 5s
-    if (cycleNum == 40) {
-        cycleNum = 0;
-        sendTime();
-    }
-
-    sendTelemetryTail();
 }
-
 void handleFrSkyHubTelemetry(timeUs_t currentTimeUs)
 {
     if (telemetryState == TELEMETRY_STATE_INITIALIZED_SERIAL && frSkyHubPort) {
