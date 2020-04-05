@@ -35,7 +35,7 @@
 
 #include "config/feature.h"
 
-#include "fc/config.h"
+#include "config/config.h"
 
 #include "flight/gps_rescue.h"
 
@@ -56,9 +56,12 @@ static uint16_t gpsRescueConfig_yawP;
 static uint16_t gpsRescueConfig_targetLandingAltitudeM;
 static uint16_t gpsRescueConfig_targetLandingDistanceM;
 static uint8_t gpsRescueConfig_altitudeMode;
+static uint16_t gpsRescueConfig_ascendRate;
+static uint16_t gpsRescueConfig_descendRate;
 
-static long cms_menuGpsRescuePidOnEnter(void)
+static const void *cms_menuGpsRescuePidOnEnter(displayPort_t *pDisp)
 {
+    UNUSED(pDisp);
 
     gpsRescueConfig_throttleP = gpsRescueConfig()->throttleP;
     gpsRescueConfig_throttleI = gpsRescueConfig()->throttleI;
@@ -70,11 +73,12 @@ static long cms_menuGpsRescuePidOnEnter(void)
     gpsRescueConfig_velI = gpsRescueConfig()->velI;
     gpsRescueConfig_velD = gpsRescueConfig()->velD;
 
-    return 0;
+    return NULL;
 }
 
-static long cms_menuGpsRescuePidOnExit(const OSD_Entry *self)
+static const void *cms_menuGpsRescuePidOnExit(displayPort_t *pDisp, const OSD_Entry *self)
 {
+    UNUSED(pDisp);
     UNUSED(self);
 
     gpsRescueConfigMutable()->throttleP = gpsRescueConfig_throttleP;
@@ -87,7 +91,7 @@ static long cms_menuGpsRescuePidOnExit(const OSD_Entry *self)
     gpsRescueConfigMutable()->velI = gpsRescueConfig_velI;
     gpsRescueConfigMutable()->velD = gpsRescueConfig_velD;
 
-    return 0;
+    return NULL;
 }
 
 const OSD_Entry cms_menuGpsRescuePidEntries[] =
@@ -115,11 +119,13 @@ CMS_Menu cms_menuGpsRescuePid = {
 #endif
     .onEnter = cms_menuGpsRescuePidOnEnter,
     .onExit = cms_menuGpsRescuePidOnExit,
+    .onDisplayUpdate = NULL,
     .entries = cms_menuGpsRescuePidEntries,
 };
 
-static long cmsx_menuGpsRescueOnEnter(void)
+static const void *cmsx_menuGpsRescueOnEnter(displayPort_t *pDisp)
 {
+    UNUSED(pDisp);
 
     gpsRescueConfig_angle = gpsRescueConfig()->angle;
     gpsRescueConfig_initialAltitudeM = gpsRescueConfig()->initialAltitudeM;
@@ -134,14 +140,16 @@ static long cmsx_menuGpsRescueOnEnter(void)
     gpsRescueConfig_targetLandingDistanceM = gpsRescueConfig()->targetLandingDistanceM;
     gpsRescueConfig_targetLandingAltitudeM = gpsRescueConfig()->targetLandingAltitudeM;
     gpsRescueConfig_altitudeMode = gpsRescueConfig()->altitudeMode;
+    gpsRescueConfig_ascendRate = gpsRescueConfig()->ascendRate;
+    gpsRescueConfig_descendRate = gpsRescueConfig()->descendRate;
 
-    return 0;
+    return NULL;
 }
 
-static long cmsx_menuGpsRescueOnExit(const OSD_Entry *self)
+static const void *cmsx_menuGpsRescueOnExit(displayPort_t *pDisp, const OSD_Entry *self)
 {
+    UNUSED(pDisp);
     UNUSED(self);
-
 
     gpsRescueConfigMutable()->angle = gpsRescueConfig_angle;
     gpsRescueConfigMutable()->initialAltitudeM = gpsRescueConfig_initialAltitudeM;
@@ -156,7 +164,10 @@ static long cmsx_menuGpsRescueOnExit(const OSD_Entry *self)
     gpsRescueConfigMutable()->targetLandingDistanceM = gpsRescueConfig_targetLandingDistanceM;
     gpsRescueConfigMutable()->targetLandingAltitudeM = gpsRescueConfig_targetLandingAltitudeM;
     gpsRescueConfigMutable()->altitudeMode = gpsRescueConfig_altitudeMode;
-    return 0;
+    gpsRescueConfigMutable()->ascendRate = gpsRescueConfig_ascendRate;
+    gpsRescueConfigMutable()->descendRate = gpsRescueConfig_descendRate;
+
+    return NULL;
 }
 
 const OSD_Entry cmsx_menuGpsRescueEntries[] =
@@ -174,6 +185,8 @@ const OSD_Entry cmsx_menuGpsRescueEntries[] =
     { "THROTTLE MIN",      OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsRescueConfig_throttleMin, 1000, 2000, 1 }, REBOOT_REQUIRED },
     { "THROTTLE MAX",      OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsRescueConfig_throttleMax, 1000, 2000, 1 }, REBOOT_REQUIRED },
     { "THROTTLE HOV",      OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsRescueConfig_throttleHover, 1000, 2000, 1 }, REBOOT_REQUIRED },
+    { "ASCEND RATE",       OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsRescueConfig_ascendRate, 100, 2500, 1 }, REBOOT_REQUIRED },
+    { "DESCEND RATE",      OME_UINT16, NULL, &(OSD_UINT16_t){ &gpsRescueConfig_descendRate, 100, 500, 1 }, REBOOT_REQUIRED },
     { "ARM WITHOUT FIX",   OME_Bool,  NULL, &gpsRescueConfig_allowArmingWithoutFix, REBOOT_REQUIRED },
     { "MIN SATELITES",     OME_UINT8, NULL, &(OSD_UINT8_t){ &gpsRescueConfig_minSats, 5, 50, 1 }, REBOOT_REQUIRED },
     { "GPS RESCUE PID",    OME_Submenu, cmsMenuChange, &cms_menuGpsRescuePid, 0},
@@ -189,6 +202,7 @@ CMS_Menu cmsx_menuGpsRescue = {
 #endif
     .onEnter = cmsx_menuGpsRescueOnEnter,
     .onExit = cmsx_menuGpsRescueOnExit,
+    .onDisplayUpdate = NULL,
     .entries = cmsx_menuGpsRescueEntries,
 };
 
