@@ -16,11 +16,11 @@
 #
 
 # The target to build, see VALID_TARGETS below
-<<<<<<< HEAD
+
 TARGET    ?= MATEKF405
-=======
+
 TARGET    ?= STM32F405
->>>>>>> branch 'master' of https://github.com/betaflight/betaflight.git
+# branch 'master' of https://github.com/betaflight/betaflight.git
 
 # Compile-time options
 OPTIONS   ?=

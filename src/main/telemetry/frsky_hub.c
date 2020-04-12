@@ -27,6 +27,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
+
 #include "platform.h"
 
 #if defined(USE_TELEMETRY_FRSKY_HUB)
@@ -538,11 +540,10 @@ void processFrSkyHubTelemetry(timeUs_t currentTimeUs)
 
 
     	//multiplies of .1 degrees 180deg = 1800
-    	int16_t eulX = attitude.values.roll;
-    	int16_t eulY = attitude.values.pitch;
-    	int16_t eulZ = attitude.values.yaw;
 
-    	int32_t altx = (int16_t) getEstimatedAltitudeCm();
+    	int16_t eulY = attitude.values.pitch;
+
+    	int16_t gyro = gyro.gyroADCRaw[Y];
 
     	//uint16_t accZ = acc.dev.ADCRaw[Z];
 
@@ -552,15 +553,8 @@ void processFrSkyHubTelemetry(timeUs_t currentTimeUs)
 
     	//uint16_t gyroX = acc.dev.gyroADC[X];
     	serialWrite(frSkyHubPort, 0x42);
-    	serialWrite(frSkyHubPort, 0x43);
-    	serialWrite(frSkyHubPort, (eulX >> 8));
-    	serialWrite(frSkyHubPort, (eulX & 0xff));
     	serialWrite(frSkyHubPort, (eulY >> 8));
     	serialWrite(frSkyHubPort, (eulY & 0xff));
-    	serialWrite(frSkyHubPort, (eulZ >> 8));
-    	serialWrite(frSkyHubPort, (eulZ & 0xff));
-    	serialWrite(frSkyHubPort, (altx >> 8));
-    	serialWrite(frSkyHubPort, (altx & 0xff));
 
  	   //serialWrite(frSkyHubPort, (gyroX));// >> 8));
  	   //serialWrite(frSkyHubPort, (gyroX & 0xff));
